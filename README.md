@@ -70,3 +70,14 @@ As always you'll turn in your `credentials.ini` through Canvas.
 ## Authors
 
 Michal Young, Ram Durairajan. Updated by Ali Hassani.
+
+## Author:
+Catherine Raj
+
+## Description:
+Our goal is to organize Brevets into the Web and API services. Then we are to write data schemas using Mongo Engines
+
+## Contaact:
+craj@uoregon.edu
+
+
