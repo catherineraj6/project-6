@@ -7,19 +7,42 @@ import flask
 from flask import request
 import arrow  # Replacement for datetime, based on moment.js
 import acp_times  # Brevet time calculations
-import config
-from mymongo import insert_brevet, get_brevet
+#import config
+#from mymongo import insert_brevet, get_brevet
+import os
 import logging
+import json
+import requests
 
 ###
 # Globals
 ###
+
+
 app = flask.Flask(__name__)
-CONFIG = config.configuration()
+app.debug = True if "DEBUG" not in os.environ else os.environ["DEBUG"]
+port_num = True if "PORT" not in os.environ else os.environ["PORT"]
+app.logger.setLevel(logging.DEBUG)
+
+
+API_ADDR = os.environ["API_ADDR"]
+API_PORT = os.environ["API_PORT"]
+API_URL = f"http://{API_ADDR}:{API_PORT}/api/"
+
+#CONFIG = config.configuration()
+def get_brevet():
+    brevets = requests.get(f"{API_URL}/brevets").json()
+    brevet = brevets[-1]
+    return brevet["brevet_dist_km"], brevet["begin_date"], brevet["checkpoints"]
+
+def insert_brevet(brevet_dist, start_time, checkpoints):
+     _id = requests.post(f"{API_URL}/brevets", json={"brevet_dist_km": brevet_dist, "start_time": start_time, "checkpoints": checkpoints}).json()
+     return _id
 
 ###
 # Pages
 ###
+
 
 
 @app.route("/")
@@ -61,7 +84,7 @@ def _calc_times():
     app.logger.debug("start_time={}".format(start_time))
 
     app.logger.debug("request.args: {}".format(request.args))
-
+    
     # FIXME!
     # Right now, only the current time is passed as the start time
     # and control distance is fixed to 200
@@ -77,9 +100,9 @@ def insert():
         input_json = request.json
         brevet_dist_km = input_json["brevet_dist_km"] # Should be a string
         begin_date = input_json["begin_date"] # Should be a string
-        items = input_json["items"] # Should be a list of dictionaries
+        checkpoints = input_json["checkpoints"] # Should be a list of dictionaries
 
-        brevet_id = insert_brevet(brevet_dist_km, begin_date, items)
+        brevet_id = insert_brevet(brevet_dist_km, begin_date, checkpoints)
 
         return flask.jsonify(result={},
                         message="Inserted!", 
@@ -93,9 +116,9 @@ def insert():
 @app.route("/fetch_brevet")
 def fetch_brevet():
     try:
-        brevet_dist_km, begin_date, items = get_brevet()
+        brevet_dist_km, begin_date, checkpoints = get_brevet()
         return flask.jsonify(
-                result={"brevet_dist_km": brevet_dist_km, "begin_date": begin_date, "items": items},
+                result={"brevet_dist_km": brevet_dist_km, "begin_date": begin_date, "checkpoints": checkpoints},
                 status=1,
                 message="Successfully fetched a brevet list!")
     except:
@@ -106,10 +129,6 @@ def fetch_brevet():
 
 #############
 
-app.debug = CONFIG.DEBUG
-if app.debug:
-    app.logger.setLevel(logging.DEBUG)
-
 if __name__ == "__main__":
-    print("Opening for global access on port {}".format(CONFIG.PORT))
-    app.run(port=CONFIG.PORT, host="0.0.0.0")
+    
+    app.run(port=port_num, host="0.0.0.0")

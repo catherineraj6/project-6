@@ -158,8 +158,8 @@
                var begin_date = $('#begin_date').val();
                var items = [];
                $('.control').each(function() {
-                  var close_time_field = $(this).find('input[name="close_time"]').val();
-                  var open_time_field = $(this).find('input[name="open_time"]').val();
+                  var close_time_field = $(this).find('input[name="close"]').val();
+                  var open_time_field = $(this).find('input[name="open"]').val();
                   var km = $(this).find('input[name="km"]').val();
                   var miles = $(this).find('input[name="miles"]').val();
                   var location = $(this).find('input[name="location"]').val();
@@ -212,21 +212,22 @@
                 $('#fetch').click(async (event) => {
                   event.preventDefault();
                   try {
-                     const { result: { begin_date, brevet_dist_km, items } } = await fetch(FETCH_URL).then(res => res.json());
+                     const { result: { begin_date, brevet_dist_km,checkpoints } } = await fetch(FETCH_URL).then(res => res.json());
                      $('#begin_date').val(begin_date);
                      $('#brevet_dist_km').val(brevet_dist_km);
                      $('.control input').val('');
-                     items.forEach((item, index) => {
+                     for (let i = 0; i < checkpoints.length; i++) {
                         if (index < $('.control').length) {
                         const control = $('.control').eq(index);
-                        control.find("input[name='close']").val(item.close_time_field);
-                        control.find("input[name='open']").val(item.open_time_field);
-                        control.find("input[name='km']").val(item.km);
-                        control.find("input[name='miles']").val(item.miles);
-                        control.find("input[name='location']").val(item.location);
+                        control.find("input[name='close']").val(checkpoint.close_time_field);
+                        control.find("input[name='open']").val(checkpoint.open_time_field);
+                        control.find("input[name='km']").val(checkpoint.km);
+                        control.find("input[name='miles']").val(checkpoint.miles);
+                        control.find("input[name='location']").val(checkpoint.location);
                         }
-                     });
-                  } catch (error) {
+                     
+                     };
+                  }  catch (error) {
                      console.log('Error: ', error);
                   }
                   });
